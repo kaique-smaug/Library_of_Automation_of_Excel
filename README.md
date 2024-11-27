@@ -125,5 +125,5 @@ excel.macro(module="Modulo1", sub="MinhaMacro")
 Considerações Finais
 Essa aula foi desenvolvida para facilitar tarefas comuns em planilhas Excel, reduzindo a necessidade de interação manual. Caso encontre problemas ou tenha sugestões, fique à vontade para contribuir.
 
-Autor: Seu Nome
+Autor: Kaique Batista Ramos
 Versão: 1.1.5
