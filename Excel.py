@@ -1,13 +1,14 @@
-__version__ = '1.1.5'
+__version__ = '1.1.7'
 """
     Import all libraries bibliotecas what i am using at the script
 """
-import xlwings as xw
-import openpyxl as pp
-import pandas as pd
-import warnings
-import unidecode
-import csv 
+
+from openpyxl import load_workbook
+from pandas import read_excel, set_option, read_html
+from xlwings import Book
+from warnings import catch_warnings, simplefilter
+from unidecode import unidecode
+from csv import reader
 
 class Excel:    
     def __init__(self, pathSpreadsheet: str = None):
@@ -34,19 +35,19 @@ class Excel:
                        columnSix: str = None,
                        columnSeven: str = None,
                        columnEight: str = None,
-                       valuesOne=None,
-                       valuesTwo=None,
-                       valuesThree=None,
-                       valuesFour=None,
-                       valuesFive=None,
-                       valuesSix=None,
-                       valuesSeven=None,
-                       valuesEight=None):
+                       valuesOne: [str, int, object] = None,
+                       valuesTwo: [str, int, object] = None,
+                       valuesThree: [str, int, object] = None,
+                       valuesFour: [str, int, object] = None,
+                       valuesFive: [str, int, object] = None,
+                       valuesSix: [str, int, object] = None,
+                       valuesSeven: [str, int, object] = None,
+                       valuesEight: [str, int, object] = None):
 
-        with warnings.catch_warnings():
-            warnings.simplefilter(action='ignore', category=FutureWarning)
+        with catch_warnings():
+            simplefilter(action='ignore', category=FutureWarning)
 
-            self._df = pd.read_excel(self._pathSpreadsheet, sheet_name=nameSheet, index_col=None)
+            self._df = read_excel(self._pathSpreadsheet, sheet_name=nameSheet, index_col=None)
 
             self._lastLine = self._df.shape[0]
 
@@ -92,10 +93,10 @@ class Excel:
     '''
     def delete_data(self, nameSheet: str = None):
 
-        with warnings.catch_warnings():
-            warnings.simplefilter(action='ignore', category=FutureWarning)
+        with catch_warnings():
+            simplefilter(action='ignore', category=FutureWarning)
 
-            self._df = pd.read_excel(self._pathSpreadsheet, sheet_name= nameSheet, index_col=None)
+            self._df = read_excel(self._pathSpreadsheet, sheet_name= nameSheet, index_col=None)
 
 
             self._lastLine = self._df.shape[0]
@@ -108,7 +109,7 @@ class Excel:
 
     def delete_data_v2(self, nameSheet: str = None):
 
-        self._workbook = pp.load_workbook(self._pathSpreadsheet)
+        self._workbook = load_workbook(self._pathSpreadsheet)
 
         self._sheet = self._workbook[nameSheet]
 
@@ -124,7 +125,7 @@ class Excel:
         Function of run the macro of spreadsheet.
     '''
     def macro(self, module: str = None, sub: str = None):
-        self._workbook = xw.Book(self._pathSpreadsheet)
+        self._workbook = Book(self._pathSpreadsheet)
         macr = self._workbook.macro(f'{module}.{sub}')
         macr()
 
@@ -143,7 +144,7 @@ class Excel:
                       valuesSix=None):
         """
         Writes multiple values to a specified Excel sheet in specified columns.
-
+        
         Args:
             nameSheet (str): The name of the sheet where values will be written.
             columnOne (str): The column letter for the first set of values.
@@ -165,14 +166,13 @@ class Excel:
         """
         
         # Load the existing workbook
-        workbook = pp.load_workbook(self._pathSpreadsheet)
+        workbook = load_workbook(self._pathSpreadsheet)
         
         # Access the specified worksheet by name
         ws = workbook[nameSheet]
 
         # Determine the last row in the specified worksheet
         lastLine = ws.max_row + 1
-
         # Iterate over the range of values in the third column (valuesThree)
         for index in range(0, len(valuesThree)):
             
@@ -200,81 +200,10 @@ class Excel:
         
         # Close the workbook to free up resources
         workbook.close()
-
-    def write_many_values_teste(self, nameSheet: str = None,
-                             columnOne=None,
-                             columnTwo=None,
-                             columnThree=None,
-                             columnFour=None,
-                             columnFive=None,
-                             columnSix=None,
-                             valuesOne=None,
-                             valuesTwo=None,
-                             valuesThree=None,
-                             valuesFour=None,
-                             valuesFive=None,
-                             valuesSix=None):
-        """
-        Writes multiple values to a specified Excel sheet in designated columns,
-        ensuring that empty column designations are not written to.
-
-        Args:
-            nameSheet (str): The name of the sheet where values will be written.
-            columnOne (str): The column letter for the first set of values.
-            columnTwo (str): The column letter for the second set of values.
-            columnThree (str): The column letter for the third set of values.
-            columnFour (str): The column letter for the fourth set of values.
-            columnFive (str): The column letter for the fifth set of values.
-            columnSix (str): The column letter for the sixth set of values.
-            valuesOne (list): The values to write in columnOne.
-            valuesTwo (list): The values to write in columnTwo.
-            valuesThree (list): The values to write in columnThree.
-            valuesFour (list): The values to write in columnFour.
-            valuesFive (list): The values to write in columnFive.
-            valuesSix (list): The values to write in columnSix.
-
-        Raises:
-            Exception: Raises an exception if the provided sheet name is invalid or
-                        if there is an error during writing to the spreadsheet.
-        """
         
-        # Load the existing workbook
-        workbook = pp.load_workbook(self._pathSpreadsheet)
-        
-        # Access the specified worksheet by name
-        ws = workbook[nameSheet]
-
-        # Determine the last row in the specified worksheet
-        lastLine = ws.max_row + 1
-
-        # Iterate over the range of values in the third column (valuesThree)
-        for index in range(0, len(valuesThree)):
-            
-            # Write values to the specified columns only if they are provided and not empty
-            if valuesOne and columnOne != '':
-                ws[columnOne + str(index + lastLine)] = valuesOne
-
-            if valuesTwo and columnTwo != '':
-                ws[columnTwo + str(index + lastLine)] = valuesTwo[index]
-
-            if valuesThree and columnThree != '':
-                ws[columnThree + str(index + lastLine)] = valuesThree[index]
-
-            if valuesFour and columnFour != '':
-                ws[columnFour + str(index + lastLine)] = valuesFour
-
-            if valuesFive and columnFive != '':
-                ws[columnFive + str(index + lastLine)] = valuesFive
-
-            if valuesSix and columnSix != '':
-                ws[columnSix + str(index + lastLine)] = valuesSix[index]
-
-        # Save the changes made to the workbook
-        workbook.save(self._pathSpreadsheet)
-
-    def insert_values(self, nameSheetOne, nameSheetTwo):
+    def insert_values(self, nameSheetOne: str = None, nameSheetTwo: str = None):
         """
-        Inserts values from one Excel sheet into another, applying specific transformations
+        Inserts values from one Excel sheet into another, applying specific trans   ations
         to the values in the first column.
 
         Args:
@@ -287,7 +216,7 @@ class Excel:
         """
         
         # Load the existing workbook
-        self._workBook = pp.load_workbook(self._pathSpreadsheet)
+        self._workBook = load_workbook(self._pathSpreadsheet)
         
         # Access the specified sheets by name
         self._sheet = self._workBook[nameSheetOne]
@@ -299,7 +228,7 @@ class Excel:
         # Transform values in the first column (A) to remove accents
         try:
             for index in range(1, self._num_linhas_ativas):
-                self._sheet[f'A{index}'].value = unidecode.unidecode(self._sheet[f'A{index}'].value)
+                self._sheet[f'A{index}'].value = unidecode(self._sheet[f'A{index}'].value)
         except Exception as e:
             print(f"Error while processing column A: {e}")
         
@@ -322,12 +251,12 @@ class Excel:
 
     
     def read_values(self, nameSheet: str = None,
-                columnOne=None,
-                columnTwo=None,
-                columnThree=None,
-                columnFour=None,
-                columnFive=None,
-                columnSix=None):
+                columnOn: str=None,
+                columnTwo: str =None,
+                columnThree: str=None,
+                columnFour: str=None,
+                columnFive: str=None,
+                columnSix:  str=None):
         """
         Reads values from specified columns of a given Excel sheet and stores them in a dictionary.
 
@@ -350,7 +279,7 @@ class Excel:
         """
         
         # Load the existing workbook
-        workbook = pp.load_workbook(self._pathSpreadsheet)
+        workbook = load_workbook(self._pathSpreadsheet)
         
         # Access the specified worksheet by name
         ws = workbook[nameSheet]
@@ -372,8 +301,8 @@ class Excel:
         for index in range(2, self._last_line + 1):
             
             # Read values from the specified columns and append to the result if they are not None
-            if columnOne:
-                cell_value = ws[columnOne + str(index)].value
+            if columnOn:
+                cell_value = ws[columnOn + str(index)].value
                 if cell_value is not None:  # Check if there is data in the cell
                     self._result['columnOne'].append(cell_value)
 
@@ -405,6 +334,81 @@ class Excel:
         # Return the values from the columns that contain data
         return self._result
     
+    def read_values_html_format(self, 
+                index_spreadsheet: int = None, 
+                name_colunm_one: int = None,
+                name_colunm_two: str = None,
+                name_colunm_three: str = None,
+                name_colunm_four: str = None,
+                name_colunm_five: str = None,
+                name_colunm_six: str = None):
+        
+        # Set pandas display options so that no rows, columns, or cell contents are truncated when printing.
+        set_option('display.max_rows', None)  
+        set_option('display.max_columns', None) 
+        set_option('display.width', None) 
+        set_option('display.max_colwidth', None)  
+
+        # Read the HTML file at self._pathSpreadsheet and select the table at the given index.
+        self._response = read_html(self._pathSpreadsheet)[index_spreadsheet]
+
+        # Initialize the result dictionary with keys for six possible columns.
+        self._result = {
+            'column_one': [],
+            'column_two': [],
+            'column_three': [],
+            'column_four': [],
+            'column_five': [],
+            'column_six': []
+        }
+
+        # For each provided column name parameter, extract that column from the response,
+        # drop any NaN values, convert the column to a list, and store it in the corresponding key.
+        
+        if name_colunm_one:
+            # Extract the desired column using the provided name (or index) for column one.
+            self.__column_desired = self._response[name_colunm_one]
+            # Remove any missing values and convert the column to a list.
+            self.__column_desired = self.__column_desired.dropna().tolist()
+            # Append the list to the result dictionary under 'column_one'.
+            if self.__column_desired is not None:
+                self._result['column_one'].append(self.__column_desired)
+        
+        if name_colunm_two:
+            self.__column_desired = self._response[name_colunm_two]
+            self.__column_desired = self.__column_desired.dropna().tolist()
+            if self.__column_desired is not None:
+                
+                self._result['column_two'].append(self.__column_desired)
+        
+        if name_colunm_three:
+            self.__column_desired = self._response[name_colunm_three]
+            self.__column_desired = self.__column_desired.dropna().tolist()
+            if self.__column_desired is not None:
+                self._result['column_three'].append(self.__column_desired)
+       
+        if name_colunm_four:
+            self.__column_desired = self._response[name_colunm_four]
+            self.__column_desired = self.__column_desired.dropna().tolist()
+            if self.__column_desired is not None:
+                self._result['column_four'].append(self.__column_desired)
+
+        if name_colunm_five:
+            self.__column_desired = self._response[name_colunm_five]
+            self.__column_desired = self.__column_desired.dropna().tolist()
+            if self.__column_desired is not None:
+                self._result['column_five'].append(self.__column_desired)
+        
+        if name_colunm_six:
+            self.__column_desired = self._response[name_colunm_six]
+            self.__column_desired = self.__column_desired.dropna().tolist()
+            if self.__column_desired is not None:
+                self._result['column_six'].append(self.__column_desired)
+
+        # Return the dictionary containing the extracted column(s)
+        return self._result
+
+    
     def csv(self, path, mode, newLine, encode, deli):
         """
         Reads a CSV file and stores its content in a list of tuples.
@@ -429,10 +433,46 @@ class Excel:
         # Open the specified CSV file with the provided parameters
         with open(path, mode=mode, newline=newLine, encoding=encode) as file:
             # Create a CSV reader object with the specified delimiter
-            self._csv_reader = csv.reader(file, delimiter=deli)
+            self._csv_reader = reader(file, delimiter=deli)
             
             # Iterate through the rows in the CSV file
             for row in self._csv_reader:
                 self._lst.append(tuple(row))  # Append each row as a tuple to the list
         
         return self._lst  # Return the list of tuples
+
+    """
+        Removes formulas from column D of the specified sheet in an Excel workbook, replacing them with their computed values.
+
+        Parameters:
+        name_sheet (str): The name of the worksheet to process.
+
+        Returns:
+        None
+    """
+    def remove_formula(self, name_sheet: str = None, path_optional: str = None, column_remove: str = None): 
+        # Open the workbook without `data_only=True` to access formulas
+        wb = load_workbook(self._pathSpreadsheet, data_only=False)
+        sheet = wb[name_sheet]
+
+        # Create a dictionary to store the computed values
+        values = {}
+
+        # Open the workbook again with `data_only=True` to retrieve calculated values
+        wb_data = load_workbook(self._pathSpreadsheet, data_only=True)
+        sheet_data = wb_data[name_sheet]
+        
+        # Iterate through all cells in column D
+        for cell, cell_data in zip(sheet[column_remove], sheet_data[column_remove]):
+            if isinstance(cell.value, str) and cell.value.startswith("="):  # Check if the cell contains a formula
+                values[cell.coordinate] = cell_data.value  # Store the computed value
+
+        # Replace formulas with computed values in the original worksheet
+        for coord, value in values.items():
+            sheet[coord].value = value
+
+        if path_optional != '':
+            # Save the workbook with formulas removed only from column D
+            wb.save(path_optional)
+        else:
+            wb.save(self._pathSpreadsheet)
